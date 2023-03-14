@@ -1,3 +1,3 @@
-output "Application_Address" {
-  value = "http://${aws_lb.test-EHR-lb.dns_name}"
+output "ip_address" {
+  value = "${aws_instance.test_EHR_EC2.public_ip}:3000"
 }

@@ -65,7 +65,7 @@ resource "aws_iam_instance_profile" "ec2_cd_instance_profile" {
 
 
 # EC2
-resource "aws_instance" "test_EHR" {
+resource "aws_instance" "test_EHR_EC2" {
   ami                         = "ami-0778521d914d23bc1"
   instance_type               = "t2.medium"
   subnet_id                   = data.terraform_remote_state.vpc.outputs.vpc_public_subnets[0]
@@ -73,7 +73,7 @@ resource "aws_instance" "test_EHR" {
   associate_public_ip_address = true
   key_name                    = "id_rsa"
   tags = {
-    Name = "test_EHR"
+    Name = "test_EHR_EC2"
   }
   iam_instance_profile = aws_iam_instance_profile.ec2_cd_instance_profile.name
   user_data            = file("codedeploy_agent_install.sh")
@@ -90,6 +90,13 @@ resource "aws_security_group" "test_EHR_EC2_sg" {
   ingress {
     from_port   = 22
     to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 3000
+    to_port     = 3000
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
@@ -137,39 +144,39 @@ resource "aws_security_group" "test_EHR_alb_sg" {
 }
 
 
-#..............................................ALB Target Group
-resource "aws_lb_target_group" "test-ehr-tg" {
-  name     = "test-ehr-tg"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = data.terraform_remote_state.vpc.outputs.vpc_id
-}
+# #..............................................ALB Target Group
+# resource "aws_lb_target_group" "test-ehr-tg" {
+#   name     = "test-ehr-tg"
+#   port     = 80
+#   protocol = "HTTP"
+#   vpc_id   = data.terraform_remote_state.vpc.outputs.vpc_id
+# }
 
 
-#................................................ALB
-resource "aws_lb" "test-EHR-lb" {
-  name                             = "test-EHR-lb"
-  internal                         = false
-  load_balancer_type               = "application"
-  security_groups                  = [aws_security_group.test_EHR_alb_sg.id]
-  subnets                          = data.terraform_remote_state.vpc.outputs.vpc_public_subnets
-  enable_cross_zone_load_balancing = true
+# #................................................ALB
+# resource "aws_lb" "test-EHR-lb" {
+#   name                             = "test-EHR-lb"
+#   internal                         = false
+#   load_balancer_type               = "application"
+#   security_groups                  = [aws_security_group.test_EHR_alb_sg.id]
+#   subnets                          = data.terraform_remote_state.vpc.outputs.vpc_public_subnets
+#   enable_cross_zone_load_balancing = true
 
-  tags = {
-    Name = "test_EHR_lb"
-  }
-}
+#   tags = {
+#     Name = "test_EHR_lb"
+#   }
+# }
 
 
-#......................ALB Listener
-resource "aws_lb_listener" "test_EHR_listener" {
-  load_balancer_arn = aws_lb.test-EHR-lb.arn
-  port              = "80"
-  protocol          = "HTTP"
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.test-ehr-tg.arn
-  }
-}
+# #......................ALB Listener
+# resource "aws_lb_listener" "test_EHR_listener" {
+#   load_balancer_arn = aws_lb.test-EHR-lb.arn
+#   port              = "80"
+#   protocol          = "HTTP"
+#   default_action {
+#     type             = "forward"
+#     target_group_arn = aws_lb_target_group.test-ehr-tg.arn
+#   }
+# }
 
 
