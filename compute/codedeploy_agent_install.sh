@@ -24,7 +24,7 @@ sudo touch /etc/nginx/sites-available/reverse-proxy
 # Write the configuration to the file
 sudo echo "server {
     listen 80;
-    server_name example.com;
+    server_name meetjamin.online.;
 
     location / {
         proxy_pass http://localhost:3000;
